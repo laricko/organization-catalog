@@ -107,11 +107,15 @@ async def seed() -> None:
         phones_data = [
             {"organization_id": org1, "phone": "+7 (495) 111-22-33"},
             {"organization_id": org1, "phone": "+7 (495) 111-22-34"},
+
             {"organization_id": org2, "phone": "+7 (495) 222-33-44"},
+
             {"organization_id": org3, "phone": "+7 (495) 333-44-55"},
+
             {"organization_id": org4, "phone": "+7 (495) 444-55-66"},
             {"organization_id": org4, "phone": "+7 (495) 444-55-67"},
-            {"organization_id": org5, "phone": "+7 (495) 555-66-77"},
+
+            {"organization_id": org5, "phone": "+7 (495) 111-22-33"},
         ]
         await session.execute(insert(organization_phones), phones_data)
 
