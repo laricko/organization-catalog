@@ -1,8 +1,10 @@
+import os
 from collections.abc import AsyncGenerator
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Security, status
+from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.dto import GeoBBox, OrganizationDetail
@@ -13,7 +15,26 @@ from infra.repository import OrganizationReadRepository
 
 app = FastAPI(title="Organization Directory API")
 
-router = APIRouter(prefix="/organizations", tags=["Organizations"])
+API_SECURITY_KEY = os.getenv(
+    "API_KEY",
+    "defaultkey-123456789",
+)
+API_KEY_SCHEME = APIKeyHeader(name="X-API-Key")
+
+
+def require_api_key(api_key: str | None = Security(API_KEY_SCHEME)) -> None:
+    if api_key != API_SECURITY_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+        )
+
+
+router = APIRouter(
+    prefix="/organizations",
+    tags=["Organizations"],
+    dependencies=[Depends(require_api_key)]
+)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

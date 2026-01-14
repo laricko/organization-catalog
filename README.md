@@ -5,28 +5,6 @@
 - `GET /organizations/geo/bbox` — поиск организаций в прямоугольнике по координатам здания.
 - `GET /organizations/geo/radius` — поиск организаций в радиусе от точки (упрощённый расчёт через bounding box, без PostGIS).
 
-### Примеры запросов
-
-```bash
-curl "http://localhost:8000/organizations?name=Молочный"
-```
-
-```bash
-curl "http://localhost:8000/organizations?building=Ленина&activity=Еда"
-```
-
-```bash
-curl "http://localhost:8000/organizations?phone=+7%20(495)%20111-22-33"
-```
-
-```bash
-curl "http://localhost:8000/organizations/geo/bbox?min_lat=55.75&min_lon=37.60&max_lat=55.78&max_lon=37.65"
-```
-
-```bash
-curl "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=1500"
-```
-
 ### Домен
 
 Проект следует DDD-подходу в рамках bounded context «каталога организаций». Доменная модель включает агрегаты Organization, Activity и Building, а также value object GeoPoint. Инварианты проверяются внутри доменных сущностей.
@@ -51,20 +29,29 @@ API будет доступен на `http://localhost:8000`.
 make seed_dev
 ```
 
-### Быстрая проверка через curl
+### Примеры запросов
 
 ```bash
-curl "http://localhost:8000/organizations?name=Молочный"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?name=Молочный"
 ```
+ожидаемый результат — 1 организация
 
 ```bash
-curl "http://localhost:8000/organizations/{org_id}"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?building=Ленина&activity=Еда"
 ```
+ожидаемый результат - 2 организации
 
 ```bash
-curl "http://localhost:8000/organizations/geo/bbox?min_lat=55.75&min_lon=37.60&max_lat=55.78&max_lon=37.65"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?phone=+7%20(495)%20111-22-33"
 ```
+ожидаемый результат — 2 организации
 
 ```bash
-curl "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=1500"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/geo/bbox?min_lat=55.75&min_lon=37.60&max_lat=55.78&max_lon=37.65"
 ```
+ожидаемый результат — 5 организаций
+
+```bash
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=1500"
+```
+ожидаемый результат — 3 организации
