@@ -32,8 +32,7 @@ class GeoPoint:
 @dataclass(slots=True, kw_only=True)
 class Building(AggregateRoot):
     address: str
-    lat: float
-    lon: float
+    point: GeoPoint
 
 
 class ActivityLevelError(DomainError):
