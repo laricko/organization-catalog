@@ -24,11 +24,14 @@ class OrganizationReadRepositoryProtocol(Protocol):
         ...
 
     async def list_within_bbox(self, *, bbox: GeoBBox) -> list[OrganizationDetail]:
-        """Поиск по прямоугольнику"""
+        """Поиск по прямоугольнику."""
         ...
 
-    async def list_within_radius(self, * center: GeoPoint, radius_meters: float) -> Sequence[OrganizationDetail]:
-        """
-        Поиск по радиусу
-        """
+    async def list_within_radius(
+        self,
+        *,
+        center: GeoPoint,
+        radius_meters: float,
+    ) -> Sequence[OrganizationDetail]:
+        """Поиск по радиусу."""
         ...

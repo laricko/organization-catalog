@@ -57,6 +57,7 @@ async def list_organizations(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> list[OrganizationDetail]:
+    """Возвращает список организаций, подходящих под фильтры."""
     if not any([name, building, phone, activity]):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -76,17 +77,17 @@ async def list_organizations(
 @router.get(
     "/{org_id}",
     response_model=OrganizationDetail,
-    summary="Get organization by ID",
+    summary="Карточка организации по идентификатору",
     description=(
-        "Returns full information about an organization: "
-        "its name, address, phone numbers and activity types."
+        "Возвращает карточку организации: название, адрес, "
+        "телефоны и виды деятельности."
     ),
     responses={
         status.HTTP_200_OK: {
-            "description": "Organization found",
+            "description": "Организация найдена",
         },
         status.HTTP_404_NOT_FOUND: {
-            "description": "Organization with the given ID does not exist",
+            "description": "Организация с таким ID не найдена",
         },
     },
 )
@@ -96,6 +97,7 @@ async def get_organization_by_id(
         OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)
     ],
 ):
+    """Возвращает организацию по её идентификатору."""
     organization = await org_repo.get_by_id(organization_id=org_id)
     if not organization:
         raise HTTPException(
@@ -117,12 +119,15 @@ async def get_organization_by_id(
     ),
 )
 async def list_organizations_within_bbox(
-    org_repo: Annotated[OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)],
+    org_repo: Annotated[
+        OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)
+    ],
     min_lat: float = Query(..., description="Минимальная широта (нижняя граница)"),
     min_lon: float = Query(..., description="Минимальная долгота (левая граница)"),
     max_lat: float = Query(..., description="Максимальная широта (верхняя граница)"),
     max_lon: float = Query(..., description="Максимальная долгота (правая граница)"),
 ):
+    """Возвращает организации, находящиеся в пределах bounding box."""
     bbox = GeoBBox(
         min_lat=min_lat,
         min_lon=min_lon,
@@ -142,11 +147,14 @@ async def list_organizations_within_bbox(
     ),
 )
 async def list_organizations_within_radius(
-    org_repo: Annotated[OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)],
+    org_repo: Annotated[
+        OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)
+    ],
     lat: float = Query(..., description="Широта центра"),
     lon: float = Query(..., description="Долгота центра"),
     radius_meters: float = Query(..., gt=0, description="Радиус в метрах"),
 ):
+    """Возвращает организации в радиусе от точки."""
     center = GeoPoint(lat=lat, lon=lon)
     return await org_repo.list_within_radius(
         center=center,

@@ -23,7 +23,7 @@ class Organization(AggregateRoot):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class GeoPoint:
-    """Value object representing a geographical point."""
+    """Географическая точка (широта и долгота)."""
 
     lat: float
     lon: float
@@ -41,10 +41,13 @@ class ActivityLevelError(DomainError):
 
 @dataclass(slots=True, kw_only=True)
 class Activity(AggregateRoot):
+    """Вид деятельности с инвариантом уровня вложенности 1..3."""
+
     name: str
     parent_id: UUID | None = None
     level: int
 
     def __post_init__(self) -> None:
+        """Гарантирует, что уровень вложенности находится в диапазоне 1..3."""
         if self.level not in {1, 2, 3}:
             raise ActivityLevelError("Activity nesting level must be 1..3.")
