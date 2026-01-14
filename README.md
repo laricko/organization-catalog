@@ -7,19 +7,15 @@
 
 ### Домен
 
-Проект следует DDD-подходу в рамках bounded context «каталога организаций». Доменная модель включает агрегаты Organization, Activity и Building, а также value object GeoPoint. Инварианты проверяются внутри доменных сущностей.
+Проект следует DDD-подходу в рамках bounded context "каталога организаций" Доменная модель включает агрегаты Organization, Activity и Building, а также value object GeoPoint. Инварианты проверяются внутри доменных сущностей.
 
-Отдельное правило домена: **максимум 3 уровня вложенности деятельностей**. Это ограничение закреплено в инварианте агрегата `Activity` (уровень допускается только 1..3).
+Отдельное правило домена: **максимум 3 уровня вложенности деятельностей**. Это ограничение инкапсулировано в инварианте агрегата `Activity` (уровень допускается только 1..3).
 
-### Запуск сервиса
+### Запуск дева
 
 ```bash
 docker compose up --build
 ```
-
-API будет доступен на `http://localhost:8000`.
-
-### Миграции
 
 Миграции применяются автоматически при старте контейнера `api` (команда `alembic upgrade head` уже включена в `docker-compose.yml`).
 
@@ -32,17 +28,17 @@ make seed_dev
 ### Примеры запросов
 
 ```bash
-curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?name=Молочный"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?name=%D0%9C%D0%BE%D0%BB%D0%BE%D1%87%D0%BD%D1%8B%D0%B9"
 ```
 ожидаемый результат — 1 организация
 
 ```bash
-curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?building=Ленина&activity=Еда"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?building=%D0%9B%D0%B5%D0%BD%D0%B8%D0%BD%D0%B0&activity=%D0%95%D0%B4%D0%B0"
 ```
 ожидаемый результат - 2 организации
 
 ```bash
-curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?phone=+7%20(495)%20111-22-33"
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations?phone=%2B7%20%28495%29%20111-22-33"
 ```
 ожидаемый результат — 2 организации
 
@@ -54,4 +50,15 @@ curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/g
 ```bash
 curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=1500"
 ```
+ожидаемый результат — 4 организации
+
+```bash
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=500"
+```
 ожидаемый результат — 3 организации
+
+```bash
+curl -H "X-API-Key: defaultkey-123456789" "http://localhost:8000/organizations/geo/radius?lat=55.76&lon=37.62&radius_meters=100"
+```
+
+ожидаемый результат — 1 организации
