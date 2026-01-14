@@ -9,3 +9,7 @@ migrate:
 
 psql:
 	docker compose exec db psql -U catalog -d catalog
+
+
+format:
+	uv run black src

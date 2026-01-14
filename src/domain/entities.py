@@ -24,6 +24,7 @@ class Organization(AggregateRoot):
 @dataclass(frozen=True, slots=True, kw_only=True)
 class GeoPoint:
     """Value object representing a geographical point."""
+
     lat: float
     lon: float
 

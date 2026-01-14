@@ -48,7 +48,9 @@ router = APIRouter(prefix="/organizations", tags=["Organizations"])
 )
 async def get_organization_by_id(
     org_id: UUID,
-    org_repo: Annotated[OrganizationReadRepositoryProtocol, Depends(get_organization_repo)],
+    org_repo: Annotated[
+        OrganizationReadRepositoryProtocol, Depends(get_organization_repo)
+    ],
 ):
     organization = await org_repo.get_by_id(org_id)
     if not organization:

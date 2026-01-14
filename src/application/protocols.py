@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from typing import Protocol, Sequence
 from uuid import UUID
@@ -15,6 +14,7 @@ class GeoBBox:
     min_lat/min_lon - bottom-left
     max_lat/max_lon - top-right
     """
+
     min_lat: float
     min_lon: float
     max_lat: float
@@ -22,13 +22,17 @@ class GeoBBox:
 
 
 class OrganizationReadRepositoryProtocol(Protocol):
-    async def list_by_building(self, *, building_id: UUID) -> Sequence[OrganizationDetail]:
+    async def list_by_building(
+        self, *, building_id: UUID
+    ) -> Sequence[OrganizationDetail]:
         """Список всех организаций, находящихся в конкретном здании."""
         ...
 
-    async def list_by_activity(self, *, activity_id: UUID) -> Sequence[OrganizationDetail]:
+    async def list_by_activity(
+        self, *, activity_id: UUID
+    ) -> Sequence[OrganizationDetail]:
         """
-        Список всех организаций, которые относятся к указанному виду деятельности. 
+        Список всех организаций, которые относятся к указанному виду деятельности.
         Должны учитываться вложенные виды деятельности.
         """
         ...
