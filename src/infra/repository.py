@@ -1,9 +1,11 @@
+import math
 from uuid import UUID
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from application.dto import OrganizationDetail
+from application.dto import GeoBBox, OrganizationDetail
+from domain.entities import GeoPoint
 
 
 class OrganizationReadRepository:
@@ -163,3 +165,64 @@ class OrganizationReadRepository:
         result = await self.session.execute(stmt, params)
         rows = result.mappings().all()
         return [OrganizationDetail.model_validate(row) for row in rows]
+
+    async def list_within_bbox(self, *, bbox: GeoBBox) -> list[OrganizationDetail]:
+        stmt = text(
+            """
+            WITH phones AS (
+                SELECT op.organization_id, array_agg(DISTINCT op.phone) AS phone_numbers
+                FROM organization_phones op
+                GROUP BY op.organization_id
+            ),
+            acts AS (
+                SELECT oa.organization_id, array_agg(DISTINCT a.name) AS activities
+                FROM organization_activities oa
+                JOIN activities a ON a.id = oa.activity_id
+                GROUP BY oa.organization_id
+            )
+            SELECT
+                o.id,
+                o.name AS name,
+                b.address AS address,
+                COALESCE(p.phone_numbers, ARRAY[]::text[]) AS phone_numbers,
+                COALESCE(x.activities, ARRAY[]::text[]) AS activities
+            FROM organizations o
+            JOIN buildings b ON b.id = o.building_id
+            LEFT JOIN phones p ON p.organization_id = o.id
+            LEFT JOIN acts x ON x.organization_id = o.id
+            WHERE
+                b.lat BETWEEN :min_lat AND :max_lat
+                AND b.lon BETWEEN :min_lon AND :max_lon
+            ORDER BY o.name
+            """
+        )
+
+        result = await self.session.execute(
+            stmt,
+            {
+                "min_lat": bbox.min_lat,
+                "max_lat": bbox.max_lat,
+                "min_lon": bbox.min_lon,
+                "max_lon": bbox.max_lon,
+            },
+        )
+        rows = result.mappings().all()
+        return [OrganizationDetail.model_validate(r) for r in rows]
+
+    async def list_within_radius(
+        self,
+        *,
+        center: GeoPoint,
+        radius_meters: float,
+    ) -> list[OrganizationDetail]:
+        meters_per_deg = 111_320.0
+        dlat = radius_meters / meters_per_deg
+        dlon = radius_meters / (meters_per_deg * max(math.cos(math.radians(center.lat)), 1e-12))
+
+        bbox = GeoBBox(
+            min_lat=center.lat - dlat,
+            max_lat=center.lat + dlat,
+            min_lon=center.lon - dlon,
+            max_lon=center.lon + dlon,
+        )
+        return await self.list_within_bbox(bbox=bbox)

@@ -5,8 +5,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from application.dto import OrganizationDetail
+from application.dto import GeoBBox, OrganizationDetail
 from application.protocols import OrganizationReadRepositoryProtocol
+from domain.entities import GeoPoint
 from infra.db import sessionmaker
 from infra.repository import OrganizationReadRepository
 
@@ -20,7 +21,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def get_organization_repo(
+async def get_organization_read_repo(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> OrganizationReadRepositoryProtocol:
     return OrganizationReadRepository(session)
@@ -47,7 +48,7 @@ async def get_organization_repo(
 )
 async def list_organizations(
     org_repo: Annotated[
-        OrganizationReadRepositoryProtocol, Depends(get_organization_repo)
+        OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)
     ],
     name: str | None = Query(default=None),
     building: str | None = Query(default=None),
@@ -92,7 +93,7 @@ async def list_organizations(
 async def get_organization_by_id(
     org_id: UUID,
     org_repo: Annotated[
-        OrganizationReadRepositoryProtocol, Depends(get_organization_repo)
+        OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)
     ],
 ):
     organization = await org_repo.get_by_id(organization_id=org_id)
@@ -103,6 +104,54 @@ async def get_organization_by_id(
         )
 
     return organization
+
+
+@router.get(
+    "/geo/bbox",
+    response_model=list[OrganizationDetail],
+    summary="Найти организации в прямоугольной области",
+    description=(
+        "Возвращает все организации, здания которых находятся внутри "
+        "прямоугольной области, заданной координатами.\n\n"
+        "Используется фильтрация по координатам зданий (lat/lon)."
+    ),
+)
+async def list_organizations_within_bbox(
+    org_repo: Annotated[OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)],
+    min_lat: float = Query(..., description="Минимальная широта (нижняя граница)"),
+    min_lon: float = Query(..., description="Минимальная долгота (левая граница)"),
+    max_lat: float = Query(..., description="Максимальная широта (верхняя граница)"),
+    max_lon: float = Query(..., description="Максимальная долгота (правая граница)"),
+):
+    bbox = GeoBBox(
+        min_lat=min_lat,
+        min_lon=min_lon,
+        max_lat=max_lat,
+        max_lon=max_lon,
+    )
+    return await org_repo.list_within_bbox(bbox=bbox)
+
+
+@router.get(
+    "/geo/radius",
+    response_model=list[OrganizationDetail],
+    summary="Найти организации в радиусе от точки",
+    description=(
+        "Возвращает все организации, находящиеся в пределах радиуса от заданной точки.\n\n"
+        "Реализация использует приближённый расчёт через bounding box (квадрат вокруг точки)."
+    ),
+)
+async def list_organizations_within_radius(
+    org_repo: Annotated[OrganizationReadRepositoryProtocol, Depends(get_organization_read_repo)],
+    lat: float = Query(..., description="Широта центра"),
+    lon: float = Query(..., description="Долгота центра"),
+    radius_meters: float = Query(..., gt=0, description="Радиус в метрах"),
+):
+    center = GeoPoint(lat=lat, lon=lon)
+    return await org_repo.list_within_radius(
+        center=center,
+        radius_meters=radius_meters,
+    )
 
 
 app.include_router(router)

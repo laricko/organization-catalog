@@ -19,3 +19,13 @@ class OrganizationDetail(BaseModel):
         description="Деятельность",
         examples=["Молочная продукция", "Мясная продукция”"],
     )
+
+
+class GeoBBox(BaseModel):
+    """
+    Прямоугольная область
+    """
+    min_lat: float
+    max_lat: float
+    min_lon: float
+    max_lon: float

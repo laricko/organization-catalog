@@ -1,7 +1,8 @@
 from typing import Protocol, Sequence
 from uuid import UUID
 
-from application.dto import OrganizationDetail
+from application.dto import GeoBBox, OrganizationDetail
+from domain.entities import GeoPoint
 
 
 class OrganizationReadRepositoryProtocol(Protocol):
@@ -20,4 +21,14 @@ class OrganizationReadRepositoryProtocol(Protocol):
 
     async def get_by_id(self, *, organization_id: UUID) -> OrganizationDetail | None:
         """Вывод информации об организации по её идентификатору."""
+        ...
+
+    async def list_within_bbox(self, *, bbox: GeoBBox) -> list[OrganizationDetail]:
+        """Поиск по прямоугольнику"""
+        ...
+
+    async def list_within_radius(self, * center: GeoPoint, radius_meters: float) -> Sequence[OrganizationDetail]:
+        """
+        Поиск по радиусу
+        """
         ...
