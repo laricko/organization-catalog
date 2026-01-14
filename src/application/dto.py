@@ -1,7 +1,10 @@
+from uuid import UUID
+
 from pydantic import BaseModel, Field
 
 
 class OrganizationDetail(BaseModel):
+    id: UUID = Field(..., description="Идентефикатор организации")
     name: str = Field(
         ..., description="Название организации", examples=["ООО “Рога и Копыта”"]
     )

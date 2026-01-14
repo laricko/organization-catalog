@@ -56,6 +56,7 @@ class OrganizationReadRepository:
         limit: int = 50,
         offset: int = 0,
     ) -> list[OrganizationDetail]:
+        assert any([name, building, phone, activity])
         ctes = [
             """
             phones AS (
@@ -82,10 +83,10 @@ class OrganizationReadRepository:
 
         if name:
             where_clauses.append("o.name ILIKE :name")
-            params["name"] = f"%{name}%"
+            params["name"] = f"%{name.strip()}%"
         if building:
             where_clauses.append("b.address ILIKE :building")
-            params["building"] = f"%{building}%"
+            params["building"] = f"%{building.strip()}%"
         if phone:
             where_clauses.append(
                 """
@@ -144,6 +145,7 @@ class OrganizationReadRepository:
             f"""
             WITH {", ".join(ctes)}
             SELECT
+                o.id as id,
                 o.name AS name,
                 b.address AS address,
                 COALESCE(p.phone_numbers, ARRAY[]::text[]) AS phone_numbers,
